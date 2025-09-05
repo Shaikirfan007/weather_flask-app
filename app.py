@@ -1,9 +1,12 @@
 from flask import Flask, render_template_string, request
-import requests
+import requests, os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load variables from .env
 
 app = Flask(__name__)
 
-OPENWEATHER_API_KEY = "0c634ee798728c1d1061bb61a2398a8f"
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 def get_weather(city):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
@@ -23,26 +26,17 @@ def home():
     if request.method == "POST":
         city = request.form["city"]
         weather = get_weather(city)
-
     return render_template_string("""
-        <html>
-        <head><title>Weather App</title></head>
-        <body>
-            <h2>🌤️ Weather App</h2>
-            <form method="post">
-                <input type="text" name="city" placeholder="Enter city name">
-                <button type="submit">Get Weather</button>
-            </form>
-            {% if weather %}
-                {% if weather.error %}
-                    <p>❌ {{ weather.error }}</p>
-                {% else %}
-                    <p>✅ Weather in {{ weather.city }}: {{ weather.temperature }}°C, {{ weather.description }}</p>
-                {% endif %}
-            {% endif %}
-        </body>
-        </html>
+        <form method="post">
+            <input type="text" name="city" placeholder="Enter city">
+            <button type="submit">Get Weather</button>
+        </form>
+        {% if weather %}
+            <h2>{{ weather.city }}</h2>
+            <p>Temperature: {{ weather.temperature }}°C</p>
+            <p>Description: {{ weather.description }}</p>
+        {% endif %}
     """, weather=weather)
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True)
